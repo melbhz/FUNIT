@@ -25,6 +25,8 @@ class FUNITModel(nn.Module):
     def forward(self, co_data, cl_data, hp, mode):
         xa = co_data[0].cuda()
         la = co_data[1].cuda()
+        lclass = co_data[1].cuda()
+        lhighlow = co_data[2].cuda()
         xb = cl_data[0].cuda()
         lb = cl_data[1].cuda()
         if mode == 'gen_update':
@@ -44,8 +46,9 @@ class FUNITModel(nn.Module):
             l_x_rec = recon_criterion(xr, xa)
             l_adv = 0.5 * (l_adv_t + l_adv_r)
             acc = 0.5 * (gacc_t + gacc_r)
+            l_new = s_xa['classlabel'] - highlowlabel
             l_total = (hp['gan_w'] * l_adv + hp['r_w'] * l_x_rec + hp[
-                'fm_w'] * (l_c_rec + l_m_rec))
+                'fm_w'] * (l_c_rec + l_m_rec) + hp['new_w'] * l_new)
             l_total.backward()
             return l_total, l_adv, l_x_rec, l_c_rec, l_m_rec, acc
         elif mode == 'dis_update':
